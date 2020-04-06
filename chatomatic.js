@@ -25,7 +25,7 @@ var serverOptions = {
 };
 
 if ( process.env.NODE_ENV != "development" ) {
-	serverOptions['ca'] =  fs.readFileSync(process.env.SSL_PDT_CA)
+	serverOptions['ca'] =  fs.readFileSync(process.env.SSL_CA)
 };
 
 server = https.createServer(serverOptions, app);
