@@ -73,7 +73,6 @@
             function prettyDate(dateStr){
                 const d = new Date(dateStr);
                 var midnightToday = new Date();
-                console.log(d)
                 midnightToday.setHours(0,0,0,0);
                 if (d < midnightToday) {
                     return `${d.getDate()}/${d.getMonth()} ${d.getHours()}:${d.getMinutes()}`;
