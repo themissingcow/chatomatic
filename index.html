@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chatomatic</title>
+    <style>
+
+        html, body { margin: 0; height: 100%; font-family: sans-serif; font-size: 14px; background: #f3f3f3; }
+
+        #container { display: flex; flex-direction: column; height: 100%; }
+
+        main { flex: 1; overflow: auto; }
+
+        header { background: white; box-shadow: 0px 2px 5px rgba( 0, 0, 0, 0.1 ); text-align: center; }
+        header .user { display: inline-block; padding: 0.5em; }
+
+        footer { background: white; padding: 0.1em; display: flex; }
+        footer input { flex: 1; pading: 0.5em; }
+
+        .message { background: white; border-radius: 6px; margin: 1em; padding: 1em; box-shadow: 2px 2px 5px rgba( 0, 0, 0, 0.1 ); }
+        .message .time { color: #cccccc; float: right; font-size: 0.75rem; }
+        .message .sender { font-weight: bold; font-size: 0.75rem; width: 100%; }
+        .message .body { display: block; margin-top: 0.5em; }
+
+        .info { font-style: italic; color: #999999; font-size: 0.75rem; text-align: center; margin: 1.0em; }
+        .info .time { margin-right: 1.0em; }
+        .info .sender { display: none; }
+
+    </style>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+
+        function setup()
+        {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('room') || !urlParams.has('name')) {
+                return;
+            }
+
+            const name = urlParams.get('name');
+            const room = urlParams.get('room');
+
+            const socket = io();
+
+            socket.on('connect', function(){
+                socket.emit('login', { name, room });
+            });
+
+            const messages = document.getElementById("messages");
+            const sendButton = document.getElementById("sendButton");
+            const messageInput = document.getElementById("messageInput");
+
+            // Send
+
+            function sendMessage(event) {
+                event.preventDefault();
+                let message = messageInput.value;
+                if (message != "") {
+                    socket.emit('message', {body: message});
+                    messageInput.value = "";
+                }
+            }
+
+            sendButton.onclick = sendMessage;
+            messageInput.onkeydown = function(event) {
+                if (event.key == "Enter") {
+                    sendMessage(event);
+                }
+            }
+
+            // Display
+
+            function prettyDate(dateStr){
+                const d = new Date(dateStr);
+                var midnightToday = new Date();
+                console.log(d)
+                midnightToday.setHours(0,0,0,0);
+                if (d < midnightToday) {
+                    return `${d.getDate()}/${d.getMonth()} ${d.getHours()}:${d.getMinutes()}`;
+                } else {
+                    return `${d.getHours()}:${d.getMinutes()}`;
+                }
+            }
+
+            function addMessage(message){
+                var div = document.createElement('div');
+                div.className = message.type;
+                div.innerHTML = `<span class="sender">${message.name}</span>` +
+                                `<span class="time">${prettyDate(message.at)}</span>`+
+                                `<span class="body">${message.body}<span>`;
+                messages.appendChild(div);
+                div.scrollIntoView();
+            }
+
+            socket.on('message', addMessage);
+            socket.on('messages', messages => messages.map(addMessage));
+
+            const userList = document.getElementById("users");
+            socket.on('users', function(users) {
+                userList.innerHTML = '';
+                users.forEach(function(user){
+                    var span = document.createElement('span');
+                    span.className = "user";
+                    span.innerText =  user;
+                    userList.appendChild(span);
+                });
+            });
+        }
+
+    </script>
+
+  </head>
+  <body onLoad="setup();">
+
+    <div id="container">
+        <header id="users"></header>
+        <main id="messages"></main>
+        <footer id="inputBox">
+          <input id="messageInput" autocomplete="off" />
+          <button id="sendButton">Send</button>
+        </footer>
+    </div>
+
+  </body>
+</html>

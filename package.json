@@ -1,0 +1,10 @@
+{
+  "name": "chatomatic",
+  "version": "1.0.0a1",
+  "description": "The chat component of trackomatic",
+  "dependencies": {
+    "express": "^4.17.1",
+    "https": "^1.0.0",
+    "socket.io": "^2.3.0"
+  }
+}
