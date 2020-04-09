@@ -1,5 +1,6 @@
 var fs = require('fs');
 var https = require('https');
+var striptags = require('striptags');
 
 //
 // App/Server
@@ -60,6 +61,7 @@ function roomUsers(room) {
 function postMessage(socket, data, toAll) {
 
     if (!socket.room || !socket.name) { return; }
+    if (typeof(data.body) != "string") { return; }
 
     const room = socket.room;
 
@@ -67,9 +69,12 @@ function postMessage(socket, data, toAll) {
         history[room] = [];
     }
 
+    // Quick and dirty sanitisation for now
+    body = striptags(data.body).slice(0, 1000);
+
     message = {
         name: socket.name,
-        body: data.body,
+        body: body,
         type: data.type || 'message',
         at: new Date()
     }
@@ -94,8 +99,15 @@ io.on('connection', function(socket) {
 
     socket.on('login', function({name, room}) {
 
-        socket.name = name;
-        socket.room = room;
+        if( typeof(name) != "string" || typeof(room) != "string" )
+        {
+            socket.disconnect(true);
+            return;
+        }
+
+        socket.name = striptags(name).slice(0, 100);
+        // Long enough for a UUID
+        socket.room = room.slice(0, 36);
 
         socket.join(room);
 
