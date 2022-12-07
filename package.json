@@ -3,7 +3,7 @@
   "version": "1.0.0a1",
   "description": "The chat component of trackomatic",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "https": "^1.0.0",
     "pm2": "^4.2.3",
     "socket.io": "^2.4.0",
